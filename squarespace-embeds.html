@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<title>Squarespace Embed Snippets — Available Now</title>
+<link href="https://fonts.googleapis.com/css2?family=Jost:wght@300;400;500&display=swap" rel="stylesheet"/>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: 'Jost', sans-serif;
+    background: #1c1c1a; color: #e4e0d8;
+    padding: 32px 24px; min-height: 100vh;
+  }
+  h1 { font-size: 22px; font-weight: 400; color: #e8d5b0; margin-bottom: 8px; }
+  .sub { font-size: 13px; color: #aba69a; line-height: 1.6; margin-bottom: 32px; }
+  .instructions {
+    background: #232320; border: 1px solid #383835; border-radius: 5px;
+    padding: 20px; margin-bottom: 32px;
+  }
+  .instructions h2 { font-size: 12px; letter-spacing: 2px; text-transform: uppercase; color: #7a6240; margin-bottom: 12px; }
+  .instructions ol { padding-left: 20px; }
+  .instructions li { font-size: 13px; color: #aba69a; line-height: 1.8; }
+  .instructions code { background: #2a2a27; border: 1px solid #383835; padding: 1px 6px; border-radius: 3px; font-size: 12px; color: #c9a96e; }
+
+  .config-box {
+    background: #232320; border: 1px solid #383835; border-radius: 5px;
+    padding: 20px; margin-bottom: 32px;
+  }
+  .config-box h2 { font-size: 12px; letter-spacing: 2px; text-transform: uppercase; color: #7a6240; margin-bottom: 12px; }
+  .config-row { display: flex; gap: 12px; align-items: flex-end; flex-wrap: wrap; }
+  .config-field { display: flex; flex-direction: column; gap: 6px; flex: 1; min-width: 200px; }
+  .config-field label { font-size: 9px; letter-spacing: 2px; text-transform: uppercase; color: #6a6762; }
+  .config-field input {
+    background: #1c1c1a; border: 1px solid #383835; color: #e4e0d8;
+    font-family: 'Jost', sans-serif; font-size: 13px; font-weight: 300;
+    padding: 9px 12px; border-radius: 5px; outline: none;
+  }
+  .config-field input:focus { border-color: #7a6240; }
+  .gen-btn {
+    background: rgba(201,169,110,0.07); border: 1px solid #7a6240; color: #c9a96e;
+    font-family: 'Jost', sans-serif; font-size: 10px; letter-spacing: 2px;
+    text-transform: uppercase; padding: 10px 20px; border-radius: 5px;
+    cursor: pointer; white-space: nowrap; transition: all 0.18s;
+  }
+  .gen-btn:hover { background: rgba(201,169,110,0.15); }
+
+  .provider-cards { display: flex; flex-direction: column; gap: 16px; }
+  .p-card {
+    background: #232320; border: 1px solid #383835; border-radius: 5px; overflow: hidden;
+  }
+  .p-card-head {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 12px 16px; background: #2a2a27; border-bottom: 1px solid #383835;
+  }
+  .p-name { font-size: 14px; font-weight: 400; color: #e4e0d8; }
+  .copy-btn {
+    background: none; border: 1px solid #383835; color: #6a6762;
+    font-family: 'Jost', sans-serif; font-size: 10px; letter-spacing: 1.5px;
+    text-transform: uppercase; padding: 5px 12px; border-radius: 4px;
+    cursor: pointer; transition: all 0.15s;
+  }
+  .copy-btn:hover { border-color: #7a6240; color: #c9a96e; }
+  .copy-btn.copied { border-color: #4a7a4a; color: #8aab8a; }
+  pre {
+    padding: 14px 16px; font-size: 11px; line-height: 1.6;
+    color: #6a6762; overflow-x: auto; white-space: pre-wrap; word-break: break-all;
+    font-family: 'Courier New', monospace;
+  }
+  .empty-state {
+    text-align: center; padding: 40px; color: #6a6762; font-size: 13px; font-style: italic;
+  }
+</style>
+</head>
+<body>
+
+<h1>Squarespace — Available Now Embeds</h1>
+<p class="sub">One code snippet per provider. Paste each into a Squarespace Code Block on the provider's profile page. The badge only appears when that provider has marked themselves available in the app — nothing shows when they're not active.</p>
+
+<div class="instructions">
+  <h2>How to use in Squarespace</h2>
+  <ol>
+    <li>Enter your JSONBin credentials below and click <strong>Generate Snippets</strong></li>
+    <li>In Squarespace, edit the provider's profile page</li>
+    <li>Add a <strong>Code Block</strong> where you want the badge to appear</li>
+    <li>Paste the provider's snippet into the code block and save</li>
+    <li>That's it — the badge appears automatically when they mark themselves available in the app</li>
+  </ol>
+</div>
+
+<div class="config-box">
+  <h2>Configuration</h2>
+  <div class="config-row">
+    <div class="config-field">
+      <label>JSONBin Bin ID</label>
+      <input type="text" id="cfg-bin-id" placeholder="e.g. 6638e4aad..."/>
+    </div>
+    <div class="config-field">
+      <label>Master API Key</label>
+      <input type="password" id="cfg-api-key" placeholder="$2a$10$..."/>
+    </div>
+    <button class="gen-btn" onclick="generateSnippets()">Generate Snippets</button>
+  </div>
+</div>
+
+<div class="provider-cards" id="provider-cards">
+  <div class="empty-state">Enter your credentials above and click Generate Snippets</div>
+</div>
+
+<script>
+const BIN_ID_KEY = 'binId';
+const API_KEY_KEY = 'apiKey';
+
+// Pre-fill from localStorage if available
+window.addEventListener('load', () => {
+  const binId = localStorage.getItem(BIN_ID_KEY) || '';
+  const apiKey = localStorage.getItem(API_KEY_KEY) || '';
+  if (binId) document.getElementById('cfg-bin-id').value = binId;
+  if (apiKey) document.getElementById('cfg-api-key').value = '••••••••••••';
+});
+
+function buildSnippet(binId, apiKey, provider) {
+  return `<div id="avail-${provider.id}" style="display:none;align-items:center;gap:8px;font-family:sans-serif;font-size:14px">
+  <div style="width:8px;height:8px;border-radius:50%;background:#8aab8a;animation:availPulse 2s ease infinite;flex-shrink:0"></div>
+  <span style="color:#8aab8a;font-weight:500">Available Now</span>
+</div>
+<style>
+  @keyframes availPulse {
+    0%,100%{opacity:1;transform:scale(1)}
+    50%{opacity:0.4;transform:scale(0.8)}
+  }
+</style>
+<script>
+(function(){
+  var BIN='${binId}',KEY='${apiKey}',PID='${provider.id}';
+  var el=document.getElementById('avail-'+PID);
+  function check(){
+    fetch('https://api.jsonbin.io/v3/b/'+BIN+'/latest',{headers:{'X-Master-Key':KEY}})
+    .then(function(r){return r.json();})
+    .then(function(j){
+      var rec=j.record||{};
+      var an=(rec.availableNow||{})[PID];
+      var live=an&&Date.now()<an.expiresAt;
+      el.style.display=live?'flex':'none';
+    }).catch(function(){});
+  }
+  check();
+  setInterval(check,60000);
+})();
+<\/script>`;
+}
+
+async function generateSnippets() {
+  const binId = document.getElementById('cfg-bin-id').value.trim();
+  const rawKey = document.getElementById('cfg-api-key').value.trim();
+  const apiKey = rawKey.startsWith('•') ? (localStorage.getItem('apiKey')||'') : rawKey;
+
+  if (!binId || !apiKey) {
+    alert('Please enter both Bin ID and API Key');
+    return;
+  }
+
+  localStorage.setItem(BIN_ID_KEY, binId);
+  localStorage.setItem(API_KEY_KEY, apiKey);
+
+  const container = document.getElementById('provider-cards');
+  container.innerHTML = '<div class="empty-state">Loading providers...</div>';
+
+  try {
+    const res = await fetch(`https://api.jsonbin.io/v3/b/${binId}/latest`, {
+      headers: { 'X-Master-Key': apiKey }
+    });
+    if (!res.ok) throw new Error('Failed to load');
+    const json = await res.json();
+    const providers = (json.record || {}).providers || [];
+
+    if (!providers.length) {
+      container.innerHTML = '<div class="empty-state">No providers found — add providers in Setup first</div>';
+      return;
+    }
+
+    container.innerHTML = providers.map(p => {
+      const snippet = buildSnippet(binId, apiKey, p);
+      const escaped = snippet.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+      return `<div class="p-card">
+        <div class="p-card-head">
+          <span class="p-name">${p.name}</span>
+          <button class="copy-btn" id="copy-${p.id}" onclick="copySnippet('${p.id}')">Copy Code</button>
+        </div>
+        <pre id="pre-${p.id}">${escaped}</pre>
+      </div>`;
+    }).join('');
+
+    // Store raw snippets for copying
+    window._snippets = {};
+    providers.forEach(p => { window._snippets[p.id] = buildSnippet(binId, apiKey, p); });
+
+  } catch(e) {
+    container.innerHTML = `<div class="empty-state">Error: ${e.message} — check your credentials</div>`;
+  }
+}
+
+function copySnippet(pid) {
+  const snippet = window._snippets?.[pid];
+  if (!snippet) return;
+  navigator.clipboard.writeText(snippet).then(() => {
+    const btn = document.getElementById('copy-' + pid);
+    btn.textContent = 'Copied ✓';
+    btn.classList.add('copied');
+    setTimeout(() => { btn.textContent = 'Copy Code'; btn.classList.remove('copied'); }, 2000);
+  });
+}
+</script>
+</body>
+</html>
